@@ -33,22 +33,29 @@ def main(genomes,config):
 
     arraySnailS = []
     arraySnailR = []
+    animationSnail = []
+    snailIndex= 0
     snailVelocity=6
     for i in range(4):
-        arraySnailS.append(pygame.image.load('assets/graphics/snail/snail1.png').convert_alpha())
+        snailSurf = pygame.image.load('assets/graphics/snail/snail1.png').convert_alpha()
+        animationSnail.append([snailSurf,pygame.image.load('assets/graphics/snail/snail2.png').convert_alpha()])
+        arraySnailS.append(snailSurf)
         arraySnailR.append(arraySnailS[i].get_rect(bottomright=(50000,300)))
     spawnObstacle(arraySnailR,obstacleTimer)
 
     nets=[]
     ge=[]
     runners = []
-
+    animation = []
 
     for _,genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome,config)
         nets.append(net)
-        runnerSurf = pygame.image.load('assets/graphics/Player/player_walk_1.png').convert_alpha()
-        runners.append([runnerSurf,runnerSurf.get_rect(midbottom=(80,301)),0])
+        runnerSurf1 = pygame.image.load('assets/graphics/Player/player_walk_1.png').convert_alpha()
+        runnerSurf2 = pygame.image.load('assets/graphics/Player/player_walk_2.png').convert_alpha()
+        runnerSurfJump = pygame.image.load('assets/graphics/Player/jump.png').convert_alpha()
+        runners.append([runnerSurf1,runnerSurf1.get_rect(midbottom=(80,301)),0,0])
+        animation.append([runnerSurf1,runnerSurf2,runnerSurfJump])
         genome.fitness = 0
         ge.append(genome)
 
@@ -90,10 +97,15 @@ def main(genomes,config):
 
             #player input and move
             if(runner[1].y>=218):
+
+                runner[0] = animation[x][int(runner[3])]
+                runner[3]+=0.1
+                if(runner[3]>=1.9):   runner[3]=0 
                 if output[0]<-0.5:
                     runner[2]=-16 # JUMP
                     runner[1].y=215
             else:
+                runner[0] = animation[x][2] 
                 runner[1].y += runner[2] 
                 runner[2] += 0.65  
                 if(runner[1].y>215):
@@ -118,7 +130,10 @@ def main(genomes,config):
         for g in ge:
             g.fitness += (score/100)
         #Moving the snails
+        snailIndex+=0.1
+        if(snailIndex>=1.9):   snailIndex=0 
         for i in range(4):
+            arraySnailS[i] = animationSnail[i][int(snailIndex)]
             if(arraySnailR[i].right<0):
                 arraySnailR[i].left=50000
                 for g in ge:
